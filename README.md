@@ -4,6 +4,17 @@
 
 ## Grep
 
+**Flags:**
+
+- -A - Print N lines of trailing context after matching lines
+- -B - Print N lines of leading context before matching lines
+- -C - Print N lines of output context
+- -c - Suppress normal output; instead print a count of matching lines for each input file
+- -i - Ignore case distinctions in patterns and input data
+- -v - Select non-matching lines
+- -F - Interpret PATTERN as a fixed string, not a regular expression
+- -n - Print line numbers with output lines
+
 **Examples:**
 
 ```bash
@@ -43,6 +54,11 @@
 ```
 
 ## Cut
+
+**Flags:**
+- -f - Select the fields
+- -d - Use a different separator
+- -s - Delimited lines only
 
 **Examples:**
 
