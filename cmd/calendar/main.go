@@ -7,20 +7,29 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/VxVxN/testtask/pkg/httphelper"
+	"gopkg.in/yaml.v3"
 )
 
+// todo move to pkg
 type Event struct {
 	UserID int       `json:"user_id"`
 	Date   time.Time `json:"date"`
 }
 
+// todo move to pkg
 type EventResponse struct {
 	UserID int    `json:"user_id"`
 	Date   string `json:"date"`
+}
+
+// todo move to pkg
+type Config struct {
+	Port int `yaml:"port"`
 }
 
 // global storage for events
@@ -28,15 +37,33 @@ type EventResponse struct {
 var events = []Event{}
 
 func main() {
+	cfg, err := NewConfig("cmd/calendar/config.yaml") // todo move path to flags
+	if err != nil {
+		log.Fatalf("Failed to init config: %v", err)
+	}
+
 	http.Handle("POST /event", logMiddleware(http.HandlerFunc(createEventHandler)))
 	http.Handle("PUT /event", logMiddleware(http.HandlerFunc(updateEventHandler)))
 	http.Handle("DELETE /event", logMiddleware(http.HandlerFunc(deleteEventHandler)))
 	http.Handle("GET /events", logMiddleware(http.HandlerFunc(getEventsHandler)))
 
-	fmt.Println("Server starting on port 8081...")
-	if err := http.ListenAndServe(":8081", nil); err != nil {
+	fmt.Printf("Server starting on port %d", cfg.Port)
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), nil); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func NewConfig(path string) (Config, error) {
+	var cfg Config
+	file, err := os.ReadFile(path)
+	if err != nil {
+		return Config{}, err
+	}
+
+	if err = yaml.Unmarshal(file, &cfg); err != nil {
+		return Config{}, err
+	}
+	return cfg, nil
 }
 
 func parseEventParams(r *http.Request) (Event, error) {
