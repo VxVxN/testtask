@@ -23,7 +23,7 @@ func main() {
 		log.Fatal("No fields selected")
 	}
 
-	fieldIndexes := parseFields(fields)
+	fieldIndexes := parseFieldIndexes(fields)
 	if delimiter == "" {
 		delimiter = "\t"
 	}
@@ -48,7 +48,7 @@ func main() {
 	}
 }
 
-func parseFields(rawFields string) []int {
+func parseFieldIndexes(rawFields string) []int {
 	fields := strings.Split(rawFields, ",")
 
 	fieldIndexes := make([]int, 0, len(fields))
