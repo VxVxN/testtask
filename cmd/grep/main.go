@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 )
 
 func main() {
@@ -35,6 +36,16 @@ func main() {
 		log.Fatalf("Failed to read from stdin: %v", err)
 	}
 
+	re := getRegexp(fixed, pattern, ignoreCase)
+
+	result := processLines(lines, re, *after, *before, *count, *invert, *numbered)
+
+	for _, line := range result {
+		fmt.Print(line)
+	}
+}
+
+func getRegexp(fixed *bool, pattern string, ignoreCase *bool) *regexp.Regexp {
 	var re *regexp.Regexp
 	if *fixed {
 		re = regexp.MustCompile(regexp.QuoteMeta(pattern))
@@ -45,8 +56,7 @@ func main() {
 			re = regexp.MustCompile(pattern)
 		}
 	}
-
-	printLines(lines, re, *after, *before, *count, *invert, *numbered)
+	return re
 }
 
 func readLinesFromStdin() ([]string, error) {
@@ -61,9 +71,9 @@ func readLinesFromStdin() ([]string, error) {
 	return lines, nil
 }
 
-func printLines(lines []string, re *regexp.Regexp, after, before int, count, invert, numbered bool) {
+func processLines(rawLines []string, re *regexp.Regexp, after, before int, count, invert, numbered bool) []string {
 	var matchingLines []string
-	for _, line := range lines {
+	for _, line := range rawLines {
 		match := re.MatchString(line)
 		if (invert && !match) || (!invert && match) {
 			matchingLines = append(matchingLines, line)
@@ -71,19 +81,21 @@ func printLines(lines []string, re *regexp.Regexp, after, before int, count, inv
 	}
 
 	if count {
-		fmt.Println(len(matchingLines))
-		return
+		return []string{strconv.Itoa(len(matchingLines))}
 	}
 
-	for i, line := range lines {
+	var result []string
+	for i, line := range rawLines {
 		match := re.MatchString(line)
 		if (invert && !match) || (!invert && match) {
-			printContext(lines, i, after, before, numbered)
+			lines := prepareLine(rawLines, i, after, before, numbered)
+			result = append(result, lines...)
 		}
 	}
+	return result
 }
 
-func printContext(lines []string, index, after, before int, numbered bool) {
+func prepareLine(lines []string, index, after, before int, numbered bool) []string {
 	start := index - before
 	if start < 0 {
 		start = 0
@@ -94,11 +106,13 @@ func printContext(lines []string, index, after, before int, numbered bool) {
 		end = len(lines)
 	}
 
+	var result []string
 	for i := start; i < end; i++ {
 		if numbered {
-			fmt.Printf("\033[32m%d:\033[0m%s\n", index+1, lines[i])
+			result = append(result, fmt.Sprintf("\033[32m%d:\033[0m%s\n", index+1, lines[i]))
 			continue
 		}
-		fmt.Println(lines[i])
+		result = append(result, lines[i])
 	}
+	return result
 }
