@@ -7,12 +7,11 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"time"
 
+	"github.com/VxVxN/testtask/internal/config"
 	"github.com/VxVxN/testtask/pkg/httphelper"
-	"gopkg.in/yaml.v3"
 )
 
 // todo move to pkg
@@ -27,17 +26,12 @@ type EventResponse struct {
 	Date   string `json:"date"`
 }
 
-// todo move to pkg
-type Config struct {
-	Port int `yaml:"port"`
-}
-
 // global storage for events
 // todo use redis or something like that
 var events = []Event{}
 
 func main() {
-	cfg, err := NewConfig("cmd/calendar/config.yaml") // todo move path to flags
+	cfg, err := config.NewConfig("cmd/calendar/config.yaml") // todo move path to flags
 	if err != nil {
 		log.Fatalf("Failed to init config: %v", err)
 	}
@@ -51,19 +45,6 @@ func main() {
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), nil); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func NewConfig(path string) (Config, error) {
-	var cfg Config
-	file, err := os.ReadFile(path)
-	if err != nil {
-		return Config{}, err
-	}
-
-	if err = yaml.Unmarshal(file, &cfg); err != nil {
-		return Config{}, err
-	}
-	return cfg, nil
 }
 
 func parseEventParams(r *http.Request) (Event, error) {
