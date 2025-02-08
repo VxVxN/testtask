@@ -73,3 +73,23 @@
 ```bash
     echo -e "column1\tcolumn2\ncolumn3" | ./cut -f 1 -s
 ```
+
+## Calendar App
+
+**Examples:**
+
+```bash
+curl --request POST -d "user_id=3&date=2025-02-07" http://localhost:8081/event
+```
+
+```bash
+curl --request PUT -d "user_id=3&date=2025-02-07" http://localhost:8081/event
+```
+
+```bash
+curl --request GET http://localhost:8081/events?period=month
+```
+
+```bash
+curl --request DELETE -d "user_id=3&date=2025-02-07" http://localhost:8081/event
+```
