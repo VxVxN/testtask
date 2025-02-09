@@ -10,7 +10,7 @@ type Config struct {
 	Port int `yaml:"port"`
 }
 
-func NewConfig(path string) (Config, error) {
+func New(path string) (Config, error) {
 	var cfg Config
 	file, err := os.ReadFile(path)
 	if err != nil {

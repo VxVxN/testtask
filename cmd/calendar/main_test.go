@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/VxVxN/testtask/pkg/event"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -58,7 +59,7 @@ func TestCreateEventHandlerInvalidUserID(t *testing.T) {
 }
 
 func TestGetEventsHandler(t *testing.T) {
-	events = []Event{
+	events = []event.Event{
 		{UserID: 1, Date: time.Now()},
 		{UserID: 2, Date: time.Now()},
 		{UserID: 3, Date: time.Date(2024, 10, 23, 0, 0, 0, 0, time.UTC)},
@@ -89,7 +90,7 @@ func TestGetEventsHandler(t *testing.T) {
 }
 
 func TestUpdateEventHandler(t *testing.T) {
-	events = []Event{
+	events = []event.Event{
 		{UserID: 1, Date: time.Date(2025, 11, 22, 0, 0, 0, 0, time.UTC)},
 	}
 
@@ -108,7 +109,7 @@ func TestUpdateEventHandler(t *testing.T) {
 }
 
 func TestDeleteEventHandler(t *testing.T) {
-	events = []Event{
+	events = []event.Event{
 		{UserID: 1, Date: time.Date(2025, 11, 22, 0, 0, 0, 0, time.UTC)},
 	}
 

@@ -11,14 +11,9 @@ import (
 	"time"
 
 	"github.com/VxVxN/testtask/internal/config"
+	"github.com/VxVxN/testtask/pkg/event"
 	"github.com/VxVxN/testtask/pkg/httphelper"
 )
-
-// todo move to pkg
-type Event struct {
-	UserID int       `json:"user_id"`
-	Date   time.Time `json:"date"`
-}
 
 // todo move to pkg
 type EventResponse struct {
@@ -28,10 +23,11 @@ type EventResponse struct {
 
 // global storage for events
 // todo use redis or something like that
-var events = []Event{}
+// global storage is bad practice
+var events = []event.Event{}
 
 func main() {
-	cfg, err := config.NewConfig("cmd/calendar/config.yaml") // todo move path to flags
+	cfg, err := config.New("cmd/calendar/config.yaml") // todo move path to flags
 	if err != nil {
 		log.Fatalf("Failed to init config: %v", err)
 	}
@@ -47,27 +43,27 @@ func main() {
 	}
 }
 
-func parseEventParams(r *http.Request) (Event, error) {
+func parseEventParams(r *http.Request) (event.Event, error) {
 	rawData, err := io.ReadAll(r.Body) // without r.FormValue() because it does not support DELETE requests
 	if err != nil {
-		return Event{}, err
+		return event.Event{}, err
 	}
 	values, err := url.ParseQuery(string(rawData))
 	if err != nil {
-		return Event{}, err
+		return event.Event{}, err
 	}
 
 	userID, err := strconv.Atoi(values.Get("user_id"))
 	if err != nil {
-		return Event{}, fmt.Errorf("invalid user_id")
+		return event.Event{}, fmt.Errorf("invalid user_id")
 	}
 
 	date, err := time.Parse("2006-01-02", values.Get("date"))
 	if err != nil {
-		return Event{}, fmt.Errorf("invalid date format, expected YYYY-MM-DD")
+		return event.Event{}, fmt.Errorf("invalid date format, expected YYYY-MM-DD")
 	}
 
-	return Event{UserID: userID, Date: date}, nil
+	return *event.New(userID, date), nil
 }
 
 func logMiddleware(next http.Handler) http.Handler {
@@ -144,7 +140,7 @@ func getEventsHandler(w http.ResponseWriter, r *http.Request) {
 	switch period {
 	case "day":
 		for _, e := range events {
-			if e.Date.Year() == now.Year() && e.Date.YearDay() == now.YearDay() {
+			if e.IncludeInDay(now.Year(), now.YearDay()) {
 				periodEvents = append(periodEvents, EventResponse{
 					UserID: e.UserID,
 					Date:   e.Date.Format("2006-01-02"),
@@ -153,7 +149,7 @@ func getEventsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	case "week":
 		for _, e := range events {
-			if e.Date.Year() == now.Year() && e.Date.YearDay() >= now.YearDay()-int(now.Weekday()) && e.Date.YearDay() <= now.YearDay() {
+			if e.IncludeInWeek(now.Year(), now.YearDay(), now.Weekday()) {
 				periodEvents = append(periodEvents, EventResponse{
 					UserID: e.UserID,
 					Date:   e.Date.Format("2006-01-02"),
@@ -162,7 +158,7 @@ func getEventsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	case "month":
 		for _, e := range events {
-			if e.Date.Year() == now.Year() && e.Date.Month() == now.Month() {
+			if e.IncludeInMonth(now.Year(), now.Month()) {
 				periodEvents = append(periodEvents, EventResponse{
 					UserID: e.UserID,
 					Date:   e.Date.Format("2006-01-02"),
