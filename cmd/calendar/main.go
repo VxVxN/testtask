@@ -15,7 +15,7 @@ import (
 	"github.com/VxVxN/testtask/pkg/httphelper"
 )
 
-// todo move to pkg
+// EventResponse todo move to pkg
 type EventResponse struct {
 	UserID int    `json:"user_id"`
 	Date   string `json:"date"`

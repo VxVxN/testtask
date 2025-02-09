@@ -6,10 +6,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Config todo
 type Config struct {
 	Port int `yaml:"port"`
 }
 
+// New todo
 func New(path string) (Config, error) {
 	var cfg Config
 	file, err := os.ReadFile(path)
